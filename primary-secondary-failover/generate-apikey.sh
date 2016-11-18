@@ -4,30 +4,31 @@ set -u
 
 echo "Generating API token..."
 
-printf "Lookup credentials for login..."
+echo "Lookup credentials for login..."
 RDUSER=$(awk -F= '/framework.server.username/ {print $2}' /etc/rundeck/framework.properties| tr -d ' ')
 RDPASS=$(awk -F= '/framework.server.password/ {print $2}' /etc/rundeck/framework.properties| tr -d ' ')
-SVR_URL=$(awk -F= '/framework.server.url/ {print $2}' /etc/rundeck/framework.properties)
+SVR_URL=$(awk -F= '/framework.server.url/ {print $2}' /etc/rundeck/framework.properties | tr -d ' ')
 
 
-CURLOPTS="-f -s -S -L -c cookies -b cookies"
+CURLOPTS="-fsSL -c cookies -b cookies"
 CURL="curl $CURLOPTS"
-    
+
+rm -rf ./cookies && echo "Removed previous cookies file" || echo "No cookies file to clear.. skipping"
+
 # Authenticate
-printf "authenticating..."
+echo "authenticating..."
 loginurl="${SVR_URL}/j_security_check"
-$CURL $loginurl > curl.out
-$CURL -X POST -d j_username=$RDUSER -d j_password=$RDPASS $loginurl > curl.out
+
+$CURL $CURLOPTS -d "j_username=${RDUSER}" -d "j_password=${RDPASS}" $loginurl > curl.out
 
 # Generate the API token.
-printf "Requesting token..."
-tokenurl="$SVR_URL/user/generateApiToken"
-$CURL $tokenurl?login=${RDUSER} > curl.out
-xmlstarlet fo -R -H curl.out > userprofile.html 2>/dev/null
+echo "Requesting token..."
+tokenurl="$SVR_URL/api/11/tokens/${RDUSER}"
+$CURL -XPOST -L -c cookies -b cookies $tokenurl > curl.out
+xmlstarlet fo -R curl.out > userprofile.xml 2>/dev/null
 
 # Query the profile for the first apitoken.
-# 
-token=$(xmlstarlet sel -t -m "//span[@class='apitoken']" -v . -n userprofile.html|head -1)
+token=$(xmlstarlet sel -t -v "//token/@id" userprofile.xml)
 
 if [ -z "$token" ]
 then
@@ -35,3 +36,4 @@ then
     exit 1
 fi
 echo "Generated token: $token"
+echo "$token" > token.out

@@ -45,7 +45,7 @@ yum -y install rerun rerun-rundeck-admin
 #
 # JRE
 #
-yum -y install java-1.6.0
+yum -y install java-1.7.0
 #
 # Rundeck 
 #
@@ -102,6 +102,7 @@ dataSource.username=rundeckuser
 dataSource.password=rundeckpassword
 rundeck.clusterMode.enabled=true
 rundeck.execution.logs.fileStoragePlugin=webdav-logstore
+grails.serverURL = http://$(hostname):4440
 EOF
 mv rundeck-config.properties.new rundeck-config.properties
 chown rundeck:rundeck rundeck-config.properties

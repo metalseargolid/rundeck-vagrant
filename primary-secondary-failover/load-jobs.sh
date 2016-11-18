@@ -13,12 +13,12 @@ PRIMARY=${2:-}
 
 
 echo "Get the API token for this server..."
-# GEt the API TOkens 
+# Get the API TOkens 
 CURLOPTS="-s -S -L -c cookies -b cookies"
 CURL="curl $CURLOPTS"
 RDUSER=$(awk -F= '/framework.server.username/ {print $2}' /etc/rundeck/framework.properties| tr -d ' ')
 RDPASS=$(awk -F= '/framework.server.password/ {print $2}' /etc/rundeck/framework.properties| tr -d ' ')
-SVR_URL=$(awk -F= '/framework.server.url/ {print $2}' /etc/rundeck/framework.properties)
+SVR_URL=$(awk -F= '/framework.server.url/ {print $2}' /etc/rundeck/framework.properties | tr -d ' ')
 
 # Authenticate to get the user profile
 loginurl="${SVR_URL}/j_security_check"
